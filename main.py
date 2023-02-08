@@ -5,6 +5,7 @@ import numpy as np
 from numpy import dot
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
+from math import sqrt
 
 import umap
 
@@ -17,16 +18,12 @@ tokens = list(set([w.text for w in doc if w.is_alpha]))
 def vec(s):
     return nlp(s).vector
 
-def cosine(v1, v2):
-    if norm(v1) > 0 and norm(v2) > 0:
-        return dot(v1, v2) / (norm(v1) * norm(v2))
-    else:
-        return 0.0
+def length(v1, v2):
+    return sqrt(dot(v2 - v1, v2 - v1))
 
 def spacy_closest(token_list, vec_to_check, n=10):
     return sorted(token_list,
-                  key=lambda x: cosine(vec_to_check, vec(x)),
-                  reverse=True)[:n]
+                  key=lambda x: length(vec_to_check, vec(x)))[:n]
 
 word_vecs = [
     vec(w) for w in tokens
@@ -36,7 +33,6 @@ reducer = umap.UMAP()
 embedding = reducer.fit_transform(word_vecs)
 
 fig, ax = plt.subplots()
-ax.plot(np.random.rand(10))
 
 def onclick(event):
     inv_transformed_points = reducer.inverse_transform([[event.xdata, event.ydata]])
@@ -49,6 +45,6 @@ cid = fig.canvas.mpl_connect('button_press_event', onclick)
 ax.scatter(
     embedding[:, 0],
     embedding[:, 1],
-    s=0.25
+    s=0.15
 )
 plt.show()
